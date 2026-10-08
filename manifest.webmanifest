@@ -1,6 +1,6 @@
 {
-  "name": "Al Día",
-  "short_name": "Al Día",
+  "name": "GPsaver",
+  "short_name": "GPsaver",
   "description": "Tu paga mensual convertida en paga diaria.",
   "start_url": "./",
   "display": "standalone",

@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#0f766e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Al Día">
+<meta name="apple-mobile-web-app-title" content="GPsaver">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Al Día</title>
+<title>GPsaver</title>
 <style>
 :root {
   --bg: #f5f5f0; --card: #ffffff; --ink: #1c1917; --muted: #78716c; --line: #e7e5e4;
@@ -88,7 +88,7 @@ ol { padding-left: 20px; } ol li { margin: 6px 0; }
 
 <!-- Bienvenida -->
 <main id="v-onboard" hidden>
-  <h1 style="font-size:28px;margin-top:32px">Al Día 👋</h1>
+  <h1 style="font-size:28px;margin-top:32px">GPsaver 👋</h1>
   <p class="muted">Dinos cuánto recibes al mes. Apartamos lo que quieras para cosas concretas y el resto lo repartimos entre los días del mes.</p>
   <div class="card">
     <label for="ob-ingreso">Ingreso mensual (€)</label>
@@ -149,12 +149,12 @@ ol { padding-left: 20px; } ol li { margin: 6px 0; }
 <!-- Wallet / ajustes -->
 <main id="v-wallet" hidden>
   <h1>Conectar con tu wallet</h1>
-  <p class="muted">Al Día no necesita saber <i>en qué</i> gastas, solo <i>cuánto</i>. Cada vez que pagues con el móvil, el importe entra solo.</p>
+  <p class="muted">GPsaver no necesita saber <i>en qué</i> gastas, solo <i>cuánto</i>. Cada vez que pagues con el móvil, el importe entra solo.</p>
 
   <h2>iPhone (Apple Pay)</h2>
   <div class="card">
     <ol>
-      <li>Añade Al Día a la pantalla de inicio (Compartir → <i>Añadir a pantalla de inicio</i>).</li>
+      <li>Añade GPsaver a la pantalla de inicio (Compartir → <i>Añadir a pantalla de inicio</i>).</li>
       <li>Abre la app <b>Atajos</b> → <b>Automatización</b> → <b>+</b> → <b>Transacción</b>.</li>
       <li>Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b>.</li>
       <li>Acción: <b>Abrir URL</b> y pega esta dirección; después sustituye <code>IMPORTE</code> por la variable <b>Importe</b> de la transacción:</li>
@@ -205,7 +205,7 @@ ol { padding-left: 20px; } ol li { margin: 6px 0; }
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY = 'aldia.v1';
+const KEY = 'gpsaver.v1';
 const DAY = 864e5;
 const $ = id => document.getElementById(id);
 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: Number.isInteger(Math.round(n * 100) / 100) ? 0 : 2, maximumFractionDigits: 2 }).format(n);
@@ -427,7 +427,7 @@ $('w-test').onclick = () => addGasto(3.5, null, { wallet: true, nota: 'Prueba wa
 $('w-export').onclick = () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
-  a.download = 'al-dia-copia.json'; a.click();
+  a.download = 'gpsaver-copia.json'; a.click();
 };
 $('w-reset').onclick = () => { if (confirm('¿Borrar todos los datos de este móvil?')) { localStorage.removeItem(KEY); load(); show(); } };
 

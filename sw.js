@@ -1,5 +1,5 @@
 // Red primero (para recibir actualizaciones) y caché si no hay conexión.
-const CACHE = 'aldia-v2';
+const CACHE = 'gpsaver-v3';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 
 self.addEventListener('install', e => {
