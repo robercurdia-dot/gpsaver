@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Al Día">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Al Día</title>
+<style>
+:root {
+  --bg: #f5f5f0; --card: #ffffff; --ink: #1c1917; --muted: #78716c; --line: #e7e5e4;
+  --brand: #0f766e; --brand-soft: #ccfbf1; --bad: #b91c1c; --bad-soft: #fee2e2; --warn: #b45309;
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0a09; --card: #1c1917; --ink: #f5f5f4; --muted: #a8a29e; --line: #292524;
+    --brand: #2dd4bf; --brand-soft: #134e4a; --bad: #f87171; --bad-soft: #450a0a; --warn: #fbbf24;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { padding: env(safe-area-inset-top) 0 calc(84px + env(safe-area-inset-bottom)); }
+main { max-width: 520px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 20px; margin: 4px 0 16px; }
+h2 { font-size: 15px; margin: 24px 0 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.card { background: var(--card); border-radius: var(--radius); padding: 16px; border: 1px solid var(--line); }
+.card + .card { margin-top: 12px; }
+.muted { color: var(--muted); font-size: 14px; }
+.hero { text-align: center; padding: 28px 16px 22px; }
+.hero .label { color: var(--muted); font-size: 14px; }
+.hero .big { font-size: 56px; font-weight: 750; letter-spacing: -.03em; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.hero.neg .big { color: var(--bad); }
+.bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 14px 0 8px; }
+.bar > i { display: block; height: 100%; background: var(--brand); border-radius: 99px; transition: width .3s; }
+.bar.over > i { background: var(--bad); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row .amt { font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--brand-soft); color: var(--brand); }
+.tip { background: var(--brand-soft); border: 0; color: var(--ink); }
+.tip.bad { background: var(--bad-soft); }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 14px; padding: 12px 16px; background: var(--line); color: var(--ink); }
+button.primary { background: var(--brand); color: #fff; font-weight: 650; }
+@media (prefers-color-scheme: dark) { button.primary { color: #042f2e; } }
+button.ghost { background: transparent; color: var(--muted); padding: 6px 8px; }
+button.block { width: 100%; }
+input, select { font: inherit; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 6px; }
+.cat-edit { display: grid; grid-template-columns: 1fr 96px 36px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.cat-edit .pct { grid-column: 1 / -1; margin-top: -4px; font-size: 12px; color: var(--muted); }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
+  display: flex; justify-content: space-around; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); z-index: 5; }
+nav.tabs button { background: none; color: var(--muted); font-size: 12px; padding: 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+nav.tabs button.on { color: var(--brand); font-weight: 650; }
+nav.tabs svg { width: 24px; height: 24px; }
+.fab { position: fixed; right: 20px; bottom: calc(84px + env(safe-area-inset-bottom)); width: 60px; height: 60px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: 32px; line-height: 1; padding: 0; box-shadow: 0 6px 20px rgba(0,0,0,.2); z-index: 6; }
+@media (prefers-color-scheme: dark) { .fab { color: #042f2e; } }
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 10; display: none; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-radius: 24px 24px 0 0; z-index: 11;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; transform: translateY(105%); transition: transform .25s; }
+.sheet.open { transform: none; }
+.sheet .display { font-size: 48px; font-weight: 750; text-align: center; padding: 8px 0 4px; font-variant-numeric: tabular-nums; }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.keys button { font-size: 24px; padding: 14px 0; background: var(--bg); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; scrollbar-width: none; }
+.chips button { white-space: nowrap; padding: 8px 14px; border-radius: 99px; font-size: 14px; background: var(--bg); border: 1px solid var(--line); }
+.chips button.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+@media (prefers-color-scheme: dark) { .chips button.on { color: #042f2e; } }
+.toast { position: fixed; left: 50%; top: calc(16px + env(safe-area-inset-top)); transform: translate(-50%, -150%); background: var(--ink); color: var(--bg);
+  padding: 10px 16px; border-radius: 99px; font-size: 14px; z-index: 20; transition: transform .25s; }
+.toast.show { transform: translate(-50%, 0); }
+code { background: var(--bg); padding: 2px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+ol { padding-left: 20px; } ol li { margin: 6px 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Bienvenida -->
+<main id="v-onboard" hidden>
+  <h1 style="font-size:28px;margin-top:32px">Al Día 👋</h1>
+  <p class="muted">Dinos cuánto recibes al mes. Apartamos lo que quieras para cosas concretas y el resto lo repartimos entre los días del mes.</p>
+  <div class="card">
+    <label for="ob-ingreso">Ingreso mensual (€)</label>
+    <input id="ob-ingreso" inputmode="decimal" placeholder="300">
+    <label for="ob-dia">Día del mes en que cobras</label>
+    <input id="ob-dia" inputmode="numeric" value="1">
+    <p class="muted" style="margin-top:14px">Te recomendamos apartar un <b>25%</b> para <b>gastos extraordinarios</b> (imprevistos, regalos, una avería…). Podrás cambiarlo luego.</p>
+    <button class="primary block" id="ob-go">Empezar</button>
+  </div>
+</main>
+
+<!-- Hoy -->
+<main id="v-hoy" hidden>
+  <div class="card hero" id="hero">
+    <div class="label">Puedes gastar hoy</div>
+    <div class="big" id="h-disp">0 €</div>
+    <div class="muted" id="h-sub"></div>
+    <div class="bar" id="h-bar"><i></i></div>
+    <div class="muted" id="h-bartxt"></div>
+  </div>
+  <div class="card tip bad" id="h-alert" hidden></div>
+  <div class="grid">
+    <div class="card stat"><div class="muted">Gastado hoy</div><div class="v" id="h-hoy">0 €</div></div>
+    <div class="card stat"><div class="muted">Queda este mes</div><div class="v" id="h-mes">0 €</div></div>
+  </div>
+  <h2>Movimientos del mes</h2>
+  <div class="card" id="h-list"></div>
+</main>
+
+<!-- Reparto -->
+<main id="v-reparto" hidden>
+  <h1>Reparto del dinero</h1>
+  <div class="card">
+    <label for="r-ingreso" style="margin-top:0">Ingreso mensual (€)</label>
+    <input id="r-ingreso" inputmode="decimal">
+    <label for="r-dia">Día de cobro</label>
+    <input id="r-dia" inputmode="numeric">
+  </div>
+  <div class="card tip" id="r-reco" hidden>
+    <b>Recomendado:</b> aparta el 25% (<span id="r-reco-amt"></span>) para gastos extraordinarios.
+    <div style="margin-top:10px"><button class="primary" id="r-reco-add">Añadir</button></div>
+  </div>
+  <h2>Categorías (dinero apartado)</h2>
+  <div class="card">
+    <div id="r-cats"></div>
+    <button class="block" id="r-add">+ Nueva categoría</button>
+  </div>
+  <h2>Lo que queda para el día a día</h2>
+  <div class="card">
+    <div class="row"><span>Sin clasificar</span><span class="amt" id="r-libre"></span></div>
+    <div class="row"><span>Días de este periodo</span><span class="amt" id="r-dias"></span></div>
+    <div class="row"><span><b>Paga diaria</b></span><span class="amt" id="r-diario" style="color:var(--brand);font-size:20px"></span></div>
+  </div>
+  <h2>Estado de las categorías</h2>
+  <div class="card" id="r-estado"></div>
+</main>
+
+<!-- Wallet / ajustes -->
+<main id="v-wallet" hidden>
+  <h1>Conectar con tu wallet</h1>
+  <p class="muted">Al Día no necesita saber <i>en qué</i> gastas, solo <i>cuánto</i>. Cada vez que pagues con el móvil, el importe entra solo.</p>
+
+  <h2>iPhone (Apple Pay)</h2>
+  <div class="card">
+    <ol>
+      <li>Añade Al Día a la pantalla de inicio (Compartir → <i>Añadir a pantalla de inicio</i>).</li>
+      <li>Abre la app <b>Atajos</b> → <b>Automatización</b> → <b>+</b> → <b>Transacción</b>.</li>
+      <li>Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b>.</li>
+      <li>Acción: <b>Abrir URL</b> y pega esta dirección; después sustituye <code>IMPORTE</code> por la variable <b>Importe</b> de la transacción:</li>
+    </ol>
+    <code id="w-url"></code>
+    <div style="margin-top:12px"><button id="w-copy">Copiar URL</button></div>
+  </div>
+
+  <h2>Android (Google Wallet)</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Android no deja que una web lea los pagos. Con la app gratuita <b>MacroDroid</b>:</p>
+    <ol>
+      <li>Disparador: <b>Notificación recibida</b> de Google Wallet (o de tu banco).</li>
+      <li>Acción: <b>Abrir sitio web</b> con la URL de arriba, poniendo el importe de la notificación en lugar de <code>IMPORTE</code>.</li>
+    </ol>
+  </div>
+
+  <h2>Probar</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Simula un pago de 3,50 € como si viniera del wallet:</p>
+    <button id="w-test">Simular pago</button>
+  </div>
+
+  <h2>Datos</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Todo se guarda solo en este móvil.</p>
+    <button id="w-export">Exportar copia</button>
+    <button id="w-reset" style="color:var(--bad)">Borrar todo</button>
+  </div>
+</main>
+
+<button class="fab" id="fab" aria-label="Añadir gasto" hidden>+</button>
+
+<nav class="tabs" id="tabs" hidden>
+  <button data-tab="hoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Hoy</button>
+  <button data-tab="reparto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v9l7 4"/><circle cx="12" cy="12" r="9"/></svg>Reparto</button>
+  <button data-tab="wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>Wallet</button>
+</nav>
+
+<div class="sheet-bg" id="sheet-bg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Nuevo gasto">
+  <div class="display" id="s-display">0 €</div>
+  <div class="chips" id="s-chips"></div>
+  <div class="keys" id="s-keys"></div>
+  <button class="primary block" id="s-ok" style="margin-top:12px">Guardar gasto</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'aldia.v1';
+const DAY = 864e5;
+const $ = id => document.getElementById(id);
+const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: Number.isInteger(Math.round(n * 100) / 100) ? 0 : 2, maximumFractionDigits: 2 }).format(n);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- estado ----------
+let S;
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch { S = null; }
+  if (!S) S = { ingreso: 0, diaCobro: 1, categorias: [], gastos: [], onboarded: false };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
+
+// "12,50 €" / "€12.50" / "1.234,56" -> 12.5 / 1234.56
+function parseImporte(raw) {
+  let s = String(raw || '').replace(/[^\d.,-]/g, '');
+  if (s.includes(',') && s.includes('.')) s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+  else s = s.replace(',', '.');
+  const n = Math.abs(parseFloat(s));
+  return isFinite(n) ? Math.round(n * 100) / 100 : 0;
+}
+
+// ---------- cálculos ----------
+function periodo(now = new Date()) {
+  const clampDay = (y, m) => Math.min(S.diaCobro, new Date(y, m + 1, 0).getDate());
+  let y = now.getFullYear(), m = now.getMonth();
+  if (now.getDate() < clampDay(y, m)) { m--; if (m < 0) { m = 11; y--; } }
+  const start = new Date(y, m, clampDay(y, m));
+  const ny = m === 11 ? y + 1 : y, nm = (m + 1) % 12;
+  const end = new Date(ny, nm, clampDay(ny, nm));
+  const dias = Math.round((end - start) / DAY);
+  const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diaN = Math.floor((hoy - start) / DAY) + 1;
+  return { start, end, dias, diaN };
+}
+
+function calc() {
+  const p = periodo();
+  const apartado = S.categorias.reduce((a, c) => a + c.importe, 0);
+  const libre = Math.max(0, S.ingreso - apartado);
+  const diario = libre / p.dias;
+  const delPeriodo = S.gastos.filter(g => g.ts >= +p.start && g.ts < +p.end);
+  const cotidianos = delPeriodo.filter(g => !g.cat);
+  const gastadoCot = cotidianos.reduce((a, g) => a + g.importe, 0);
+  const inicioHoy = +p.start + (p.diaN - 1) * DAY;
+  const gastadoHoy = delPeriodo.filter(g => g.ts >= inicioHoy).reduce((a, g) => a + g.importe, 0);
+  const acumulado = diario * p.diaN;               // día 1 = 1 paga, día 2 = 2 pagas…
+  const disponible = acumulado - gastadoCot;
+  const quedaMes = libre - gastadoCot;
+  const diasRest = p.dias - p.diaN + 1;
+  const nuevoDiario = quedaMes / diasRest;          // si te pasas, nueva paga para no acabar en negativo
+  const porCat = S.categorias.map(c => {
+    const g = delPeriodo.filter(x => x.cat === c.id).reduce((a, x) => a + x.importe, 0);
+    return { ...c, gastado: g, queda: c.importe - g };
+  });
+  return { p, apartado, libre, diario, delPeriodo, gastadoCot, gastadoHoy, acumulado, disponible, quedaMes, diasRest, nuevoDiario, porCat };
+}
+
+// ---------- vistas ----------
+let tab = 'hoy';
+function show() {
+  const on = S.onboarded;
+  $('v-onboard').hidden = on;
+  $('tabs').hidden = $('fab').hidden = !on;
+  for (const t of ['hoy', 'reparto', 'wallet']) $('v-' + t).hidden = !on || tab !== t;
+  $('fab').hidden = !on || tab === 'wallet';
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (!on) return;
+  if (tab === 'hoy') renderHoy();
+  if (tab === 'reparto') renderReparto();
+  if (tab === 'wallet') renderWallet();
+}
+
+function renderHoy() {
+  const c = calc();
+  $('hero').classList.toggle('neg', c.disponible < 0);
+  $('h-disp').textContent = eur(c.disponible);
+  $('h-sub').textContent = `Día ${c.p.diaN} de ${c.p.dias} · paga diaria ${eur(c.diario)}`;
+  const pct = c.acumulado > 0 ? Math.min(100, c.gastadoCot / c.acumulado * 100) : 0;
+  $('h-bar').classList.toggle('over', c.gastadoCot > c.acumulado);
+  $('h-bar').firstElementChild.style.width = pct + '%';
+  $('h-bartxt').textContent = `Llevas ${eur(c.gastadoCot)} de ${eur(c.acumulado)} acumulados`;
+  $('h-hoy').textContent = eur(c.gastadoHoy);
+  $('h-mes').textContent = eur(c.quedaMes);
+  const al = $('h-alert');
+  if (c.quedaMes < 0) {
+    al.hidden = false; al.innerHTML = `Has gastado <b>${eur(-c.quedaMes)}</b> más de lo previsto este mes. Tira de una categoría o ajusta el reparto.`;
+  } else if (c.disponible < 0) {
+    al.hidden = false; al.innerHTML = `Vas adelantado. Para cuadrar el mes, gasta como mucho <b>${eur(c.nuevoDiario)}/día</b> los próximos ${c.diasRest} días.`;
+  } else al.hidden = true;
+
+  const cats = Object.fromEntries(S.categorias.map(x => [x.id, x.nombre]));
+  const list = [...c.delPeriodo].sort((a, b) => b.ts - a.ts);
+  $('h-list').innerHTML = list.length ? list.map(g => {
+    const d = new Date(g.ts);
+    const cuando = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="row"><div><div>${g.nota ? esc(g.nota) : 'Gasto'} ${g.cat ? `<span class="pill">${esc(cats[g.cat] || '—')}</span>` : ''}</div>
+      <div class="muted">${cuando}${g.wallet ? ' · wallet' : ''}</div></div>
+      <div style="display:flex;align-items:center;gap:4px"><span class="amt">−${eur(g.importe)}</span>
+      <button class="ghost" data-del="${g.id}" aria-label="Borrar">✕</button></div></div>`;
+  }).join('') : '<p class="muted" style="margin:0">Aún no hay gastos este mes. Pulsa + o paga con el móvil.</p>';
+}
+
+function renderReparto() {
+  const c = calc();
+  if (document.activeElement !== $('r-ingreso')) $('r-ingreso').value = S.ingreso || '';
+  if (document.activeElement !== $('r-dia')) $('r-dia').value = S.diaCobro;
+  const tieneExtra = S.categorias.some(x => /extraordinari/i.test(x.nombre));
+  $('r-reco').hidden = tieneExtra || !S.ingreso;
+  $('r-reco-amt').textContent = eur(S.ingreso * 0.25);
+  renderCatsEdit();
+  $('r-libre').textContent = eur(c.libre);
+  $('r-dias').textContent = c.p.dias;
+  $('r-diario').textContent = eur(c.diario) + '/día';
+  $('r-estado').innerHTML = c.porCat.length ? c.porCat.map(x =>
+    `<div class="row"><span>${esc(x.nombre)}</span><span class="amt" style="color:${x.queda < 0 ? 'var(--bad)' : 'inherit'}">${eur(x.queda)} <span class="muted">de ${eur(x.importe)}</span></span></div>`
+  ).join('') : '<p class="muted" style="margin:0">Sin categorías: todo el ingreso va al día a día.</p>';
+}
+
+function renderCatsEdit() {
+  const box = $('r-cats');
+  if (box.contains(document.activeElement)) return; // no repintar mientras se escribe
+  box.innerHTML = S.categorias.map(x => `
+    <div class="cat-edit" data-id="${x.id}">
+      <input data-f="nombre" value="${esc(x.nombre)}" placeholder="Nombre">
+      <input data-f="importe" inputmode="decimal" value="${x.importe || ''}" placeholder="€">
+      <button class="ghost" data-delcat="${x.id}" aria-label="Quitar">✕</button>
+      <div class="pct">${S.ingreso ? Math.round(x.importe / S.ingreso * 100) : 0}% del ingreso</div>
+    </div>`).join('');
+}
+
+function renderWallet() {
+  $('w-url').textContent = location.origin + location.pathname + '?gasto=IMPORTE';
+}
+
+// ---------- gastos ----------
+function addGasto(importe, cat = null, extra = {}) {
+  if (!(importe > 0)) return;
+  S.gastos.push({ id: uid(), importe, ts: Date.now(), cat, ...extra });
+  // mantener solo ~13 meses
+  const lim = Date.now() - 400 * DAY;
+  S.gastos = S.gastos.filter(g => g.ts > lim);
+  save(); show();
+  const c = calc();
+  toast(`−${eur(importe)} · te quedan ${eur(c.disponible)} hoy`);
+}
+
+let tt;
+function toast(msg) {
+  $('toast').textContent = msg; $('toast').classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('show'), 2600);
+}
+
+// ---------- hoja de nuevo gasto ----------
+let sv = '', scat = null;
+function openSheet() {
+  sv = ''; scat = null; drawSheet();
+  $('sheet-bg').style.display = 'block'; requestAnimationFrame(() => $('sheet').classList.add('open'));
+}
+function closeSheet() { $('sheet').classList.remove('open'); $('sheet-bg').style.display = 'none'; }
+function drawSheet() {
+  $('s-display').textContent = (sv || '0') + ' €';
+  $('s-chips').innerHTML = [{ id: null, nombre: 'Día a día' }, ...S.categorias]
+    .map(x => `<button data-cat="${x.id ?? ''}" class="${scat === x.id ? 'on' : ''}">${esc(x.nombre)}</button>`).join('');
+}
+$('s-keys').innerHTML = ['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k => `<button data-k="${k}">${k}</button>`).join('');
+$('s-keys').onclick = e => {
+  const k = e.target.dataset.k; if (!k) return;
+  if (k === '⌫') sv = sv.slice(0, -1);
+  else if (k === ',') { if (!sv.includes(',')) sv = (sv || '0') + ','; }
+  else if (!(sv.includes(',') && sv.split(',')[1].length >= 2) && sv.length < 7) sv = sv === '0' ? k : sv + k;
+  drawSheet();
+};
+$('s-chips').onclick = e => { const b = e.target.closest('button'); if (!b) return; scat = b.dataset.cat || null; drawSheet(); };
+$('s-ok').onclick = () => { const n = parseImporte(sv); if (n > 0) { closeSheet(); addGasto(n, scat); } };
+$('sheet-bg').onclick = closeSheet;
+$('fab').onclick = openSheet;
+
+// ---------- eventos ----------
+$('tabs').onclick = e => { const b = e.target.closest('button'); if (b) { tab = b.dataset.tab; show(); scrollTo(0, 0); } };
+
+$('ob-go').onclick = () => {
+  const ing = parseImporte($('ob-ingreso').value);
+  if (!ing) { $('ob-ingreso').focus(); return; }
+  S.ingreso = ing;
+  S.diaCobro = Math.min(31, Math.max(1, parseInt($('ob-dia').value) || 1));
+  S.categorias = [{ id: uid(), nombre: 'Gastos extraordinarios', importe: Math.round(ing * 0.25 * 100) / 100 }];
+  S.onboarded = true; save(); tab = 'hoy'; show();
+};
+
+$('r-ingreso').oninput = e => { S.ingreso = parseImporte(e.target.value); save(); renderReparto(); };
+$('r-dia').oninput = e => { const d = parseInt(e.target.value); if (d >= 1 && d <= 31) { S.diaCobro = d; save(); renderReparto(); } };
+$('r-cats').oninput = e => {
+  const row = e.target.closest('.cat-edit'); const c = S.categorias.find(x => x.id === row.dataset.id);
+  if (e.target.dataset.f === 'nombre') c.nombre = e.target.value;
+  else { c.importe = parseImporte(e.target.value); row.querySelector('.pct').textContent = `${S.ingreso ? Math.round(c.importe / S.ingreso * 100) : 0}% del ingreso`; }
+  save(); renderReparto();
+};
+$('r-cats').addEventListener('focusout', () => setTimeout(() => { if (tab === 'reparto') renderReparto(); }));
+$('r-cats').onclick = e => {
+  const id = e.target.dataset.delcat; if (!id) return;
+  const c = S.categorias.find(x => x.id === id);
+  if (!confirm(`¿Quitar «${c.nombre}»? Su dinero vuelve al día a día.`)) return;
+  S.categorias = S.categorias.filter(x => x.id !== id);
+  S.gastos.forEach(g => { if (g.cat === id) g.cat = null; });
+  save(); renderReparto();
+};
+$('r-add').onclick = () => { S.categorias.push({ id: uid(), nombre: '', importe: 0 }); save(); renderReparto(); $('r-cats').querySelector('.cat-edit:last-child input').focus(); };
+$('r-reco-add').onclick = () => { S.categorias.unshift({ id: uid(), nombre: 'Gastos extraordinarios', importe: Math.round(S.ingreso * 25) / 100 }); save(); renderReparto(); };
+
+$('h-list').onclick = e => {
+  const id = e.target.dataset.del; if (!id) return;
+  S.gastos = S.gastos.filter(g => g.id !== id); save(); renderHoy();
+};
+
+$('w-copy').onclick = async () => { try { await navigator.clipboard.writeText($('w-url').textContent); toast('URL copiada'); } catch { toast('Mantén pulsada la URL para copiarla'); } };
+$('w-test').onclick = () => addGasto(3.5, null, { wallet: true, nota: 'Prueba wallet' });
+$('w-export').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
+  a.download = 'al-dia-copia.json'; a.click();
+};
+$('w-reset').onclick = () => { if (confirm('¿Borrar todos los datos de este móvil?')) { localStorage.removeItem(KEY); load(); show(); } };
+
+// ---------- entrada desde el wallet: ?gasto=12,50&nota=Mercadona ----------
+function fromURL() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('gasto')) return;
+  history.replaceState(null, '', location.pathname);
+  const n = parseImporte(q.get('gasto'));
+  if (!n || !S.onboarded) return;
+  addGasto(n, null, { wallet: true, nota: q.get('nota') || '' });
+}
+
+// refrescar al volver a la app (cambia el día, entra un pago…)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); show(); } });
+
+load(); show(); fromURL();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
