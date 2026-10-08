@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "al-dia", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "5178", "--directory", "/Users/robertocurbelodiaz/gpsaver"], "port": 5178 }
+    { "name": "gpsaver", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "5178", "--directory", "/Users/robertocurbelodiaz/gpsaver"], "port": 5178 }
   ]
 }
