@@ -160,38 +160,42 @@ ol { padding-left: 20px; } ol li { margin: 6px 0; }
   </div>
 
   <h2 style="margin-top:32px">Conectar con tu wallet</h2>
-  <p class="muted">GPsaver no necesita saber <i>en qué</i> gastas, solo <i>cuánto</i>. Cada vez que pagues con el móvil, el importe entra solo.</p>
+  <p class="muted">GPsaver no necesita saber <i>en qué</i> gastas, solo <i>cuánto</i>. Cada vez que pagues con el móvil, el importe entra solo la próxima vez que abras la app.</p>
 
   <h2>iPhone (Apple Pay)</h2>
   <div class="card">
     <ol>
-      <li>Añade GPsaver a la pantalla de inicio (Compartir → <i>Añadir a pantalla de inicio</i>).</li>
-      <li>Abre la app <b>Atajos</b> → <b>Automatización</b> → <b>+</b> → <b>Transacción</b>.</li>
-      <li>Elige tus tarjetas, marca <b>Ejecutar inmediatamente</b>.</li>
-      <li>Acción: <b>Abrir URL</b> y pega esta dirección; después sustituye <code>IMPORTE</code> por la variable <b>Importe</b> de la transacción:</li>
+      <li>Copia tu dirección personal (no la compartas):</li>
     </ol>
     <code id="w-url"></code>
-    <div style="margin-top:12px"><button id="w-copy">Copiar URL</button></div>
+    <div style="margin:12px 0"><button id="w-copy">Copiar dirección</button></div>
+    <ol start="2">
+      <li>Abre <b>Atajos</b> → <b>Automatización</b> → <b>+</b> → <b>Transacción</b>. Elige tus tarjetas y marca <b>Ejecutar inmediatamente</b>.</li>
+      <li>Crea un atajo nuevo y añade la acción <b>Obtener contenido de URL</b>. Pega la dirección.</li>
+      <li>Toca la flecha de la acción: <b>Método</b> → <b>POST</b>; <b>Cuerpo de la solicitud</b> → <b>JSON</b>.</li>
+      <li>Añade un campo de texto con clave <code>importe</code> y como valor la variable <b>Importe</b>. Opcional: otro campo <code>nota</code> con la variable <b>Comercio</b>.</li>
+    </ol>
+    <p class="muted" style="margin-bottom:0">Solo funciona al pagar con Apple Pay (móvil o reloj). Los pagos con la tarjeta física o por internet no los ve el iPhone: apúntalos con el botón +.</p>
   </div>
 
   <h2>Android (Google Wallet)</h2>
   <div class="card">
-    <p class="muted" style="margin-top:0">Android no deja que una web lea los pagos. Con la app gratuita <b>MacroDroid</b>:</p>
+    <p class="muted" style="margin-top:0">Con la app gratuita <b>MacroDroid</b>:</p>
     <ol>
       <li>Disparador: <b>Notificación recibida</b> de Google Wallet (o de tu banco).</li>
-      <li>Acción: <b>Abrir sitio web</b> con la URL de arriba, poniendo el importe de la notificación en lugar de <code>IMPORTE</code>.</li>
+      <li>Acción: <b>Solicitud HTTP</b>, método <b>POST</b>, a tu dirección personal añadiendo <code>?importe=</code> y el importe de la notificación.</li>
     </ol>
   </div>
 
   <h2>Probar</h2>
   <div class="card">
-    <p class="muted" style="margin-top:0">Simula un pago de 3,50 € como si viniera del wallet:</p>
-    <button id="w-test">Simular pago</button>
+    <p class="muted" style="margin-top:0">Envía un pago de prueba de 0,01 € por el mismo camino que usa el wallet. Si aparece en Hoy, la conexión funciona.</p>
+    <button id="w-test">Enviar pago de prueba</button>
   </div>
 
   <h2>Datos</h2>
   <div class="card">
-    <p class="muted" style="margin-top:0">Todo se guarda solo en este móvil.</p>
+    <p class="muted" style="margin-top:0">Tus cuentas se guardan solo en este móvil. Los importes que envía el wallet pasan por nuestro servidor solo hasta que la app los recoge, y entonces se borran.</p>
     <button id="w-export">Exportar copia</button>
     <button id="w-reset" style="color:var(--bad)">Borrar todo</button>
   </div>
@@ -356,7 +360,7 @@ function renderWallet() {
   const c = calc();
   if (document.activeElement !== $('o-gastado')) $('o-gastado').value = c.gastadoCot ? String(Math.round(c.gastadoCot * 100) / 100).replace('.', ',') : '';
   $('o-gastado-info').textContent = `Llevas ${eur(c.gastadoCot)} gastados desde el ${c.p.start.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}.`;
-  $('w-url').textContent = location.origin + location.pathname + '?gasto=IMPORTE';
+  $('w-url').textContent = `${API}/g/${clave()}`;
 }
 
 // ---------- gastos ----------
@@ -461,13 +465,19 @@ $('h-list').onclick = e => {
 };
 
 $('w-copy').onclick = async () => { try { await navigator.clipboard.writeText($('w-url').textContent); toast('URL copiada'); } catch { toast('Mantén pulsada la URL para copiarla'); } };
-$('w-test').onclick = () => addGasto(3.5, null, { wallet: true, nota: 'Prueba wallet' });
+$('w-test').onclick = async () => {
+  try {
+    const r = await fetch(`${API}/g/${clave()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ importe: '0,01', nota: 'Pago de prueba' }) });
+    if (!r.ok) throw 0;
+    await recogerPagos();
+  } catch { toast('No se pudo conectar con el servidor. ¿Tienes internet?'); }
+};
 $('w-export').onclick = () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
   a.download = 'gpsaver-copia.json'; a.click();
 };
-$('w-reset').onclick = () => { if (confirm('¿Borrar todos los datos de este móvil?')) { localStorage.removeItem(KEY); load(); show(); } };
+$('w-reset').onclick = () => { if (confirm('¿Borrar todos los datos de este móvil?')) { const c = S.clave; localStorage.removeItem(KEY); load(); S.clave = c; save(); show(); } };
 
 // ---------- entrada desde el wallet: ?gasto=12,50&nota=Mercadona ----------
 function fromURL() {
@@ -479,8 +489,41 @@ function fromURL() {
   addGasto(n, null, { wallet: true, nota: q.get('nota') || '' });
 }
 
+// ---------- buzón del wallet: el atajo deja los pagos en el servidor y aquí se recogen ----------
+const API = location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://gpsaver-api.PENDIENTE.workers.dev';
+function clave() {
+  if (!S.clave) {
+    const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    S.clave = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => abc[b % abc.length]).join('');
+    save();
+  }
+  return S.clave;
+}
+let recogiendo = false;
+async function recogerPagos() {
+  if (!S.onboarded || recogiendo || !navigator.onLine) return;
+  recogiendo = true;
+  try {
+    const r = await fetch(`${API}/p/${clave()}`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const { pagos = [] } = await r.json();
+    if (!pagos.length) return;
+    load(); // por si otra pestaña guardó algo
+    const nuevos = pagos.filter(p => !S.gastos.some(g => g.id === 'w_' + p.id));
+    // con la fecha del pago, no la de recogida, para que cuente en su día
+    for (const p of nuevos) S.gastos.push({ id: 'w_' + p.id, importe: p.importe, ts: p.ts, cat: null, wallet: true, nota: p.nota || '' });
+    save(); show();
+    if (nuevos.length) {
+      const total = nuevos.reduce((a, p) => a + p.importe, 0);
+      toast(nuevos.length === 1 ? `Pago del wallet: −${eur(total)}` : `${nuevos.length} pagos del wallet: −${eur(total)}`);
+    }
+    await fetch(`${API}/ack/${clave()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: pagos.map(p => p.id) }) });
+  } catch {} finally { recogiendo = false; }
+}
+
 // refrescar al volver a la app (cambia el día, entra un pago…)
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); show(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); show(); recogerPagos(); } });
+setInterval(() => { if (!document.hidden) recogerPagos(); }, 20000);
 
 // y a medianoche si la app sigue abierta: suma la paga del nuevo día
 (function alCambiarDeDia() {
@@ -488,7 +531,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { lo
   setTimeout(() => { show(); alCambiarDeDia(); }, manana - n);
 })();
 
-load(); show(); fromURL();
+load(); show(); fromURL(); recogerPagos();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
