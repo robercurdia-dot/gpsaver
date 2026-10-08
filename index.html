@@ -98,6 +98,10 @@ ol { padding-left: 20px; } ol li { margin: 6px 0; }
 
 <!-- Hoy -->
 <main id="v-hoy" hidden>
+  <div style="margin:4px 4px 14px">
+    <div id="h-fecha" style="font-size:22px;font-weight:700;text-transform:capitalize"></div>
+    <div class="muted" id="h-periodo"></div>
+  </div>
   <div class="card hero" id="hero">
     <div class="label">Puedes gastar hoy</div>
     <div class="big" id="h-disp">0 €</div>
@@ -292,6 +296,9 @@ function renderHoy() {
   $('hero').classList.toggle('neg', c.disponible < 0);
   $('h-disp').textContent = eur(c.disponible);
   $('h-sub').textContent = `Día ${c.p.diaN} de ${c.p.dias} · paga diaria ${eur(c.diario)}`;
+  const f = d => d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  $('h-fecha').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  $('h-periodo').textContent = `Periodo del ${f(c.p.start)} al ${f(new Date(+c.p.end - DAY))} · quedan ${c.diasRest} días`;
   const pct = c.acumulado > 0 ? Math.min(100, c.gastadoCot / c.acumulado * 100) : 0;
   $('h-bar').classList.toggle('over', c.gastadoCot > c.acumulado);
   $('h-bar').firstElementChild.style.width = pct + '%';
@@ -474,6 +481,12 @@ function fromURL() {
 
 // refrescar al volver a la app (cambia el día, entra un pago…)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); show(); } });
+
+// y a medianoche si la app sigue abierta: suma la paga del nuevo día
+(function alCambiarDeDia() {
+  const n = new Date(), manana = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 1);
+  setTimeout(() => { show(); alCambiarDeDia(); }, manana - n);
+})();
 
 load(); show(); fromURL();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
